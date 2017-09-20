@@ -9,9 +9,10 @@ import java.util.stream.Collectors;
 
 import javax.swing.JPanel;
 
-import com.github.jakz.clonemaster.Workflow.ContentCheckMode;
+import com.github.jakz.clonemaster.Strategy.ContentCheckMode;
 import com.github.jakz.clonemaster.ui.ResultTable;
 import com.pixbits.lib.io.FolderScanner;
+import com.pixbits.lib.lang.StringUtils;
 import com.pixbits.lib.ui.UIUtils;
 import com.pixbits.lib.ui.WrapperFrame;
 import com.pixbits.lib.ui.table.DataSource;
@@ -27,57 +28,32 @@ public class App
   {    
     try
     {
-      FolderScanner scanner = new FolderScanner("glob:*.{jpg,JPG,jpeg.JPEG}", null, true);
+  
+      /*FolderScanner scanner = new FolderScanner("glob:*.{jpg,JPG,jpeg,JPEG}", null, true);
       
-      Set<Path> files1 = scanner.scan(Paths.get("/Volumes/Vicky/-----Photos/Organized/Madonna di Campiglio/Natale '08"));
-      Set<Path> files2 = scanner.scan(Paths.get("/Volumes/Vicky/Photos-SSD/Organized/Madonna di Campiglio/Natale '08"));
+      Set<Path> files1 = scanner.scan(Paths.get("/Volumes/RAMDisk/n1"));//scanner.scan(Paths.get("/Volumes/Vicky/-----Photos/Organized/Madonna di Campiglio/Natale '08"));
+      Set<Path> files2 = scanner.scan(Paths.get("/Volumes/RAMDisk/n2"));;// scanner.scan(Paths.get("/Volumes/Vicky/Photos-SSD/Organized/Madonna di Campiglio/Natale '08"));
       
-      Set<Image> images1 = files1.stream().map(p -> new Image(p)).collect(Collectors.toSet());
-      Set<Image> images2 = files2.stream().map(p -> new Image(p)).collect(Collectors.toSet());
+      Set<Photo> images1 = files1.stream().map(p -> new Photo(p)).collect(Collectors.toSet());
+      Set<Photo> images2 = null; //files2.stream().map(p -> new Image(p)).collect(Collectors.toSet());
       
       ResultTable table = new ResultTable(FilterableDataSource.of(new ArrayList<>(images1)));
+      
+      UIUtils.setNimbusLNF();
       
       JPanel tablePanel = UIUtils.buildFillPanel(table, true);
       WrapperFrame<?> frame = UIUtils.buildFrame(tablePanel, "Results");
       
       frame.exitOnClose();
-      frame.setVisible(true);
-      
-      
-      if (true)
-        return;
+      frame.centerOnScreen();
+      frame.setVisible(true);*/
 
-      Workflow workflow = new Workflow();
-      workflow.setImageDataCheckMode(ContentCheckMode.NONE);
-      workflow.setHistogramThreshold(0.9f);
-      
-      System.out.println("Images to analyze: "+(images1.size()+images2.size()));
-      
-      List<Outcome> outcomes = new ArrayList<>();
-      
-      int i = 0;
-      for (Image i1 : images1)
-      {
-        
-        int j = 0;
-        for (Image i2 : images2)
-        {
-          System.out.println("Matching "+(i)+" with "+(j++));
-
-          Outcome outcome = workflow.compare(i1, i2);
-          if (outcome.isMatch())
-            outcomes.add(outcome);
-        }
-        
-        i++;
-        
-        i1.clearCachedImage();
-      }
-      
-      for (Outcome o : outcomes)
-      {
-        System.out.println(o);
-      }
+      Strategy strategy = new Strategy();
+      strategy.setImageDataCheckMode(ContentCheckMode.NONE);
+      strategy.setHistogramThreshold(0.9f);
+            
+      Workflow flow = Workflow.of(Paths.get("/Volumes/RAMDisk/n1"), Paths.get("/Volumes/RAMDisk/n2"), strategy, f -> System.out.println(StringUtils.toPercent(f, 2)+"%"));
+      flow.execute();
       
       System.out.println("Finished!");
       
@@ -87,7 +63,7 @@ public class App
       Path path1 = Paths.get("/Volumes/Vicky/-----Photos/Organized/Madonna di Campiglio/Natale '08/2008-12-30 13-56-02s.jpg");
       Path path2 = Paths.get("/Volumes/Vicky/Photos-SSD/Organized/Madonna di Campiglio/Natale '08/2008-12-30 13-56-02.jpg");
 
-      Image e1 = new Image(path1), e2 = new Image(path2);
+      Photo e1 = new Photo(path1), e2 = new Photo(path2);
 
       System.out.println("File size: "+e1.compare(e2, Comparators.byFileSize()));
       System.out.println("File content: "+e1.compare(e2, Comparators.byFileContent()));

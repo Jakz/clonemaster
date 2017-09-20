@@ -12,26 +12,32 @@ import javax.imageio.ImageIO;
 import com.pixbits.lib.io.FileUtils;
 import com.pixbits.lib.io.stream.IntArrayInputStream;
 
-public class Image
+public class Photo
 {
   private final Path path;
   private long size;
   private long crc;
   private long imageCrc;
+  private int width;
+  private int height;
+  
   private Histogram histogram;
   
   private BufferedImage image;
   
-  public Image(Path path)
+  public Photo(Path path)
   {
     this.path = path;
     this.size = -1;
     this.crc = -1;
     this.imageCrc = -1;
+    
+    this.width = -1;
+    this.height = -1;
   }
   
   @Override public int hashCode() { return path.hashCode(); }
-  @Override public boolean equals(Object o) { return o instanceof Image && path.equals(((Image)o).path); }
+  @Override public boolean equals(Object o) { return o instanceof Photo && path.equals(((Photo)o).path); }
   
   public int[] pixelData() throws IOException
   {
@@ -58,6 +64,7 @@ public class Image
   
   public void clearCachedImage()
   {
+    image.flush();
     image = null;
   }
   
@@ -103,12 +110,26 @@ public class Image
   
   public int width() throws IOException
   {
-    return image().getWidth();
+    if (width == -1)
+    {
+      width = image().getWidth();
+      height = image().getHeight();
+      clearCachedImage();
+    }
+    
+    return width;
   }
   
   public int height() throws IOException
   {
-    return image().getHeight();
+    if (height == -1)
+    {
+      width = image().getWidth();
+      height = image().getHeight();
+      clearCachedImage();
+    }
+    
+    return height;
   }
   
   public Path path()
@@ -116,7 +137,7 @@ public class Image
     return path;
   }
   
-  public Result compare(Image other, Comparator comparator) throws Exception
+  public Result compare(Photo other, Comparator comparator) throws Exception
   {
     return comparator.compare(this, other);
   }

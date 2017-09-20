@@ -15,9 +15,9 @@ class Outcome
   public final float similarity;
   public String feature;
   
-  public final Image image1, image2;
+  public final Photo image1, image2;
   
-  public Outcome(Image img1, Image img2, Type type, String feature)
+  public Outcome(Photo img1, Photo img2, Type type, String feature)
   {
     this.type = type;
     this.exactMatch = true;
@@ -28,7 +28,7 @@ class Outcome
     this.image2 = img2;
   }
   
-  public Outcome(Image img1, Image img2, Type type, float similarity, String feature)
+  public Outcome(Photo img1, Photo img2, Type type, float similarity, String feature)
   {
     this.type = type;
     this.exactMatch = similarity == 1.0f;
