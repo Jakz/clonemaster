@@ -21,7 +21,7 @@ public class Exif<T extends Exifable>
   public Exif(int poolSize)
   {
     pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(poolSize);
-    exifTool = new ExifToolBuilder().withPath(Paths.get("./usr/local/bin/exiftool").toFile()).enableStayOpen(5000).withPoolSize(poolSize).build();
+    exifTool = new ExifToolBuilder().withPath(Paths.get("/usr/local/bin/exiftool").toFile()).enableStayOpen(5000).withPoolSize(poolSize).build();
     counter = new AtomicLong(0L);
   }
   

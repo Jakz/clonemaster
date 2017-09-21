@@ -4,16 +4,35 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.BiConsumer;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 
 import javax.imageio.ImageIO;
 
+import com.github.jakz.clonemaster.exif.Exif;
+import com.github.jakz.clonemaster.exif.ExifResult;
+import com.github.jakz.clonemaster.exif.Exifable;
 import com.pixbits.lib.io.FileUtils;
 import com.pixbits.lib.io.stream.IntArrayInputStream;
+import com.pixbits.lib.util.ShutdownManager;
+import com.thebuzzmedia.exiftool.core.StandardTag;
 
-public class Photo
+public class Photo implements Exifable
 {
+  private static final ShutdownManager shutdown;
+  private static final Exif<Photo> exifTool;
+  
+  static
+  {
+    exifTool = new Exif<>(1);
+    
+    shutdown = new ShutdownManager(true);
+    shutdown.addTask(() -> { try { exifTool.dispose(); } catch (Exception e) { } });
+  }
+  
+  
+  
   private final Path path;
   private long size;
   private long crc;
@@ -24,6 +43,9 @@ public class Photo
   private Histogram histogram;
   
   private BufferedImage image;
+  
+  private boolean isLoadingExif;
+  private ExifResult exif;
   
   public Photo(Path path)
   {
@@ -38,6 +60,15 @@ public class Photo
   
   @Override public int hashCode() { return path.hashCode(); }
   @Override public boolean equals(Object o) { return o instanceof Photo && path.equals(((Photo)o).path); }
+  
+  public void cacheExif(BiConsumer<Photo, ExifResult> after)
+  {
+    isLoadingExif = true;
+    exifTool.asyncFetch(this, (photo, result) -> {
+      this.exif = result;
+      isLoadingExif = false;
+    }, after, StandardTag.values());
+  }
   
   public int[] pixelData() throws IOException
   {
@@ -135,6 +166,24 @@ public class Photo
   public Path path()
   {
     return path;
+  }
+  
+  public ExifResult exif()
+  {
+    if (exif == null && !isLoadingExif)
+      cacheExif((p,r) -> {});
+    return exif;
+  }
+  
+  public void asyncExif(BiConsumer<Photo, ExifResult> callback)
+  {
+    if (exif == null)
+    {
+      if (!isLoadingExif)
+      cacheExif(callback);
+    }
+    else
+      callback.accept(this, exif);
   }
   
   public Result compare(Photo other, Comparator comparator) throws Exception

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import javax.swing.JPanel;
 
 import com.github.jakz.clonemaster.Strategy.ContentCheckMode;
+import com.github.jakz.clonemaster.ui.ExifTable;
 import com.github.jakz.clonemaster.ui.ResultTable;
 import com.pixbits.lib.io.FolderScanner;
 import com.pixbits.lib.lang.StringUtils;
@@ -17,13 +18,16 @@ import com.pixbits.lib.ui.UIUtils;
 import com.pixbits.lib.ui.WrapperFrame;
 import com.pixbits.lib.ui.table.DataSource;
 import com.pixbits.lib.ui.table.FilterableDataSource;
+import com.pixbits.lib.util.ShutdownManager;
 
 /**
  * Hello world!
  *
  */
 public class App 
-{
+{  
+  public static ExifTable exifTable;
+  
   public static void main( String[] args )
   {    
     try
@@ -48,12 +52,17 @@ public class App
       
       System.out.println("Finished!");
       
-      ResultTable table = new ResultTable(set);
       
       UIUtils.setNimbusLNF();
       
+      ResultTable table = new ResultTable(set);
       JPanel tablePanel = UIUtils.buildFillPanel(table, true);
       WrapperFrame<?> frame = UIUtils.buildFrame(tablePanel, "Results");
+      
+      exifTable = new ExifTable();
+      JPanel exifTablePanel = UIUtils.buildFillPanel(exifTable, true);
+      WrapperFrame<?> exifTableFrame = UIUtils.buildFrame(exifTablePanel, "Info");
+      exifTableFrame.setVisible(true);
       
       frame.exitOnClose();
       frame.centerOnScreen();

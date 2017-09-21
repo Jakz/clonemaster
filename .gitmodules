@@ -1,0 +1,3 @@
+[submodule "exiftool"]
+	path = libs/exiftool
+	url = git@github.com:Jakz/exiftool.git

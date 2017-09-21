@@ -8,11 +8,13 @@ import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 
+import com.github.jakz.clonemaster.App;
 import com.github.jakz.clonemaster.Duplicate;
 import com.github.jakz.clonemaster.DuplicateEntry;
 import com.github.jakz.clonemaster.DuplicateSet;
@@ -23,6 +25,7 @@ import com.pixbits.lib.lang.Size.Int;
 import com.pixbits.lib.ui.table.ColumnSpec;
 import com.pixbits.lib.ui.table.DataSource;
 import com.pixbits.lib.ui.table.FilterableDataSource;
+import com.pixbits.lib.ui.table.ManagedListSelectionListener;
 import com.pixbits.lib.ui.table.TableModel;
 import com.pixbits.lib.ui.table.renderers.LambdaLabelTableRenderer;
 import com.pixbits.lib.ui.table.renderers.NimbusBooleanCellRenderer;
@@ -77,6 +80,14 @@ public class ResultTable extends JTable
       }
     } ));*/
     
+    this.getSelectionModel().addListSelectionListener(new ManagedListSelectionListener.Adapter<DuplicateEntry>(data) {
+      @Override
+      protected void singleSelection(DuplicateEntry object)
+      {
+        App.exifTable.refresh(object);
+      }   
+    });
+    
     for (ColumnSpec<?,?> column : columns)
       model.addColumn((ColumnSpec<DuplicateEntry,?>)column);
 
@@ -90,6 +101,11 @@ public class ResultTable extends JTable
       int index = this.convertRowIndexToModel(row);
       DuplicateEntry entry = data.get(index);
       Duplicate duplicate = entry.duplicate;
+      
+      if (entry.isMarked())
+      {
+        
+      }
       
       c.setForeground(entry.isMarked() ? Color.BLACK : Color.GRAY);
       
