@@ -1,5 +1,7 @@
 package com.github.jakz.clonemaster.ui;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -9,46 +11,58 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import javax.swing.JTable;
+import javax.swing.table.TableCellRenderer;
 
+import com.github.jakz.clonemaster.Duplicate;
+import com.github.jakz.clonemaster.DuplicateEntry;
 import com.github.jakz.clonemaster.DuplicateSet;
 import com.github.jakz.clonemaster.Photo;
 import com.pixbits.lib.functional.StreamException;
 import com.pixbits.lib.lang.Size;
 import com.pixbits.lib.lang.Size.Int;
 import com.pixbits.lib.ui.table.ColumnSpec;
+import com.pixbits.lib.ui.table.DataSource;
 import com.pixbits.lib.ui.table.FilterableDataSource;
 import com.pixbits.lib.ui.table.TableModel;
 import com.pixbits.lib.ui.table.renderers.LambdaLabelTableRenderer;
+import com.pixbits.lib.ui.table.renderers.NimbusBooleanCellRenderer;
 
 public class ResultTable extends JTable
 {
-  TableModel<Photo> model;
-  FilterableDataSource<Photo> data;
+  TableModel<DuplicateEntry> model;
+  DataSource<DuplicateEntry> data;
   
   DuplicateSet set;
   
   DateTimeFormatter dateFormatter;
   DecimalFormat numberFormatter;
   
-  public ResultTable(DuplicateSet set, FilterableDataSource<Photo> data)
+  public ResultTable(DuplicateSet set)
   {
     dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy - kk:mm:ss Z");
     numberFormatter = (DecimalFormat)NumberFormat.getInstance(Locale.getDefault());
     DecimalFormatSymbols symbols = numberFormatter.getDecimalFormatSymbols();
     numberFormatter.setDecimalFormatSymbols(symbols);
     
-    this.data = data;
     this.set = set;
+    this.data = set.getPhotoDataSource();
     model = new TableModel<>(this, data);
     
-    ColumnSpec<Photo, ?> filename = new ColumnSpec<>("Filename", Path.class, p -> p.path().getFileName());
-    ColumnSpec<Photo, ?> folder = new ColumnSpec<>("Folder", Path.class, s -> s.path().getParent());
-    ColumnSpec<Photo, ?> filesize = new ColumnSpec<>("File Size", Long.class, StreamException.rethrowFunction(s -> s.size()));
-    ColumnSpec<Photo, ?> imageSize = new ColumnSpec<>("Image Size", Size.Int.class, StreamException.rethrowFunction(s -> new Size.Int(s.width(), s.height())));
+    ColumnSpec<?,?>[] columns = new ColumnSpec<?,?>[] {   
+      new ColumnSpec<DuplicateEntry, Boolean>("", Boolean.class, p -> p.isMarked(), (p, b) -> { p.setMarked(b); repaint(); }),
+      new ColumnSpec<DuplicateEntry, Path>("Filename", Path.class, p -> p.photo.path().getFileName()),
+      new ColumnSpec<DuplicateEntry, Path>("Folder", Path.class, s -> s.photo.path().getParent()),
+      new ColumnSpec<DuplicateEntry, Long>("File Size", Long.class, StreamException.rethrowFunction(s -> s.photo.size())),
+      new ColumnSpec<DuplicateEntry, Size.Int>("Image Size", Size.Int.class, StreamException.rethrowFunction(s -> new Size.Int(s.photo.width(), s.photo.height()))),
+      new ColumnSpec<DuplicateEntry, String>("Info", String.class, s -> s.photo == s.duplicate.photos()[0] ? s.duplicate.outcome().toString() : ""),
 
+    };
     
-    filesize.setRenderer(new LambdaLabelTableRenderer<Long>((s, l) -> l.setText(numberFormatter.format(s))));
-    imageSize.setRenderer(new LambdaLabelTableRenderer<Size.Int>((s, l) -> l.setText(s.w+"x"+s.h)));
+    columns[0].setRenderer(new NimbusBooleanCellRenderer());
+    columns[0].setEditable(true);
+    
+    columns[3].setRenderer(new LambdaLabelTableRenderer<Long>((s, l) -> l.setText(numberFormatter.format(s))));
+    columns[4].setRenderer(new LambdaLabelTableRenderer<Size.Int>((s, l) -> l.setText(s.w+"x"+s.h)));
 
     
     /*startDate.setRenderer(new LambdaLabelTableRenderer<ZonedDateTime>((s, l) -> l.setText(Formatters.startDate.format(s))));
@@ -63,13 +77,25 @@ public class ResultTable extends JTable
       }
     } ));*/
     
-    model.addColumn(filename);
-    model.addColumn(folder);
-    model.addColumn(filesize);
-    model.addColumn(imageSize);
-
+    for (ColumnSpec<?,?> column : columns)
+      model.addColumn((ColumnSpec<DuplicateEntry,?>)column);
 
     this.setAutoCreateRowSorter(true);
+  }
+  
+  public Component prepareRenderer(TableCellRenderer renderer, int row, int column)
+  {
+      Component c = super.prepareRenderer(renderer, row, column);
+
+      int index = this.convertRowIndexToModel(row);
+      DuplicateEntry entry = data.get(index);
+      Duplicate duplicate = entry.duplicate;
+      
+      c.setForeground(entry.isMarked() ? Color.BLACK : Color.GRAY);
+      
+      c.setBackground(duplicate.color());
+      
+      return c;
   }
   
   void refresh()

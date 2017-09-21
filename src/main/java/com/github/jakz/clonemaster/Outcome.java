@@ -1,6 +1,6 @@
 package com.github.jakz.clonemaster;
 
-class Outcome
+public class Outcome
 {
   public static enum Type
   {
@@ -22,7 +22,7 @@ class Outcome
     this.type = type;
     this.exactMatch = true;
     this.similarity = 1.0f;
-    this.feature = "Exact Match";
+    this.feature = feature;
     
     this.image1 = img1;
     this.image2 = img2;
@@ -43,6 +43,6 @@ class Outcome
 
   public String toString()
   {
-    return String.format("%s <-> %s : %s %d%", image1.path().getFileName(), image2.path().getFileName(), feature, exactMatch? 100 : Integer.toString((int)(similarity*100)));
+    return String.format("%s: %s", feature, exactMatch ? "exact match" : Integer.toString((int)(similarity*100))+"%");
   }
 }

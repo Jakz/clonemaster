@@ -23,8 +23,8 @@ public interface Workflow
       final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:*.{jpg,jpeg,JPG,JPEG}");
       final FolderScanner scanner = new FolderScanner(matcher, null, true);
       
-      List<Photo> masterPhotos = scanner.scan(master).stream().map(p -> new Photo(p)).collect(Collectors.toList());
-      List<Photo> slavePhotos = scanner.scan(slave).stream().map(p -> new Photo(p)).collect(Collectors.toList());
+      List<Photo> masterPhotos = scanner.scan(master).stream().limit(10).map(p -> new Photo(p)).collect(Collectors.toList());
+      List<Photo> slavePhotos = scanner.scan(master).stream().limit(10).map(p -> new Photo(p)).collect(Collectors.toList());
       
       float total = masterPhotos.size() * slavePhotos.size(); 
       
@@ -46,6 +46,7 @@ public interface Workflow
         ++i;
       }
       
+      set.finalize();
       return set;
     };
   }

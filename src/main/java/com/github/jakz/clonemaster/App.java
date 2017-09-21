@@ -37,7 +37,18 @@ public class App
       Set<Photo> images1 = files1.stream().map(p -> new Photo(p)).collect(Collectors.toSet());
       Set<Photo> images2 = null; //files2.stream().map(p -> new Image(p)).collect(Collectors.toSet());
       
-      ResultTable table = new ResultTable(FilterableDataSource.of(new ArrayList<>(images1)));
+      */
+
+      Strategy strategy = new Strategy();
+      strategy.setImageDataCheckMode(ContentCheckMode.CRC_ONLY);
+      strategy.setHistogramThreshold(0.98f);
+            
+      Workflow flow = Workflow.of(Paths.get("/Volumes/RAMDisk/n1"), Paths.get("/Volumes/RAMDisk/n2"), strategy, f -> System.out.println(StringUtils.toPercent(f, 2)+"%"));
+      DuplicateSet set = flow.execute();
+      
+      System.out.println("Finished!");
+      
+      ResultTable table = new ResultTable(set);
       
       UIUtils.setNimbusLNF();
       
@@ -46,16 +57,7 @@ public class App
       
       frame.exitOnClose();
       frame.centerOnScreen();
-      frame.setVisible(true);*/
-
-      Strategy strategy = new Strategy();
-      strategy.setImageDataCheckMode(ContentCheckMode.NONE);
-      strategy.setHistogramThreshold(0.9f);
-            
-      Workflow flow = Workflow.of(Paths.get("/Volumes/RAMDisk/n1"), Paths.get("/Volumes/RAMDisk/n2"), strategy, f -> System.out.println(StringUtils.toPercent(f, 2)+"%"));
-      flow.execute();
-      
-      System.out.println("Finished!");
+      frame.setVisible(true);
       
       if (true)
         return;

@@ -1,16 +1,13 @@
 package com.github.jakz.clonemaster;
 
 import java.awt.Color;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import com.pixbits.lib.ui.color.ColorGenerator;
-import com.pixbits.lib.ui.color.PleasantColorGenerator;
+import com.pixbits.lib.ui.color.PastelColorGenerator;
 
 public class Duplicate
 {
-  private static final ColorGenerator colorGenerator = new PleasantColorGenerator();
+  private static final ColorGenerator colorGenerator = new PastelColorGenerator();
   
   private final Outcome outcome;
   private Color color;
@@ -20,6 +17,8 @@ public class Duplicate
     this.outcome = outcome;
   }
 
+  public Outcome outcome() { return outcome; }
+  public Photo master() { return outcome.image1; }
   public Photo[] photos() { return new Photo[] { outcome.image1, outcome.image2 }; }
   
   public Color color()
